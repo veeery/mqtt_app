@@ -9,6 +9,8 @@ import '../modules/mqtt/presentation/bloc/mqtt/mqtt_bloc.dart';
 final locator = GetIt.instance;
 
 void injectionMqtt() {
+  // locator.registerLazySingleton(() => MqttServerClient.withPort('broker.emqx.io', "flutter_client", 1883));
+
   // BloC
   locator.registerFactory(
     () => MqttBloc(
@@ -27,5 +29,5 @@ void injectionMqtt() {
   );
 
   // Data Source
-  locator.registerLazySingleton<MqttRemoteDataSource>(() => MqttRemoteDataSourceImpl(client: locator()));
+  locator.registerLazySingleton<MqttRemoteDataSource>(() => MqttRemoteDataSourceImpl());
 }

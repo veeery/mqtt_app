@@ -23,7 +23,7 @@ class MqttBloc extends Bloc<MqttEvent, MqttState> {
         emit(MqttError(message: failure.message));
       }, (client) {
         emit(MqttConnecting(isLoading: false));
-        emit(MqttConnected(message: 'Connected'));
+        emit(MqttConnected(message: client.connectionStatus!.state.toString()));
       });
 
     });

@@ -7,18 +7,26 @@ abstract class MqttRemoteDataSource {
 
 class MqttRemoteDataSourceImpl implements MqttRemoteDataSource {
   // final http.Client client;
-  final MqttServerClient client;
+  MqttServerClient? client;
 
-  MqttRemoteDataSourceImpl({required this.client});
+  MqttRemoteDataSourceImpl();
 
   @override
   Future<MqttServerClient> connect({required MqttModel mqttModel}) async {
+    client = MqttServerClient.withPort(
+      mqttModel.host,
+      "flutter_client",
+      int.parse(mqttModel.port),
+    );
+
     try {
       // Set up the client with the provided parameters
       // ...
-      await client.connect();
-      return client;
+      await client!.connect();
+      return client!;
     } catch (e) {
+      print('Exception: $e');
+      client!.disconnect();
       throw Exception();
     }
   }

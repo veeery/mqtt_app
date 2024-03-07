@@ -22,7 +22,9 @@ dependencies:
   # HTTP
   http:
 
+  # Local Database & Handler
   get_it:
+  sqflite:
 
   # MQTT
   mqtt_client: ^10.2.0

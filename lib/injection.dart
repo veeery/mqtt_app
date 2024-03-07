@@ -4,8 +4,9 @@ import 'package:mqtt_broker_app/injection_library/injection_mqtt.dart';
 final locator = GetIt.instance;
 
 void init() {
-  // Helper
-  // locator.registerLazySingleton(() => MqttClient());
+
+  // Database Helper / SQLite
+  // locator.registerLazySingleton(() => DatabaseHelper());
 
   // MQTT
   injectionMqtt();
