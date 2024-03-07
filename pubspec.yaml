@@ -16,6 +16,13 @@ dependencies:
   # State management
   bloc:
   flutter_bloc:
+  equatable:
+  dartz:
+
+  # HTTP
+  http:
+
+  get_it:
 
   # MQTT
   mqtt_client: ^10.2.0

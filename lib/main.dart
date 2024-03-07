@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'app_routes.dart';
-import 'modules/splashscreen/presentation/pages/splash_screen.dart';
+import 'injection.dart' as di;
+import 'modules/core/common/app_overlay.dart';
+import 'modules/core/common/utils.dart';
+import 'modules/mqtt/presentation/bloc/mqtt/mqtt_bloc.dart';
+import 'modules/mqtt/presentation/pages/mqtt_screen.dart';
 
 void main() {
-  // di.init();
+  di.init();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -15,11 +19,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion(
-      value: SystemUiOverlayStyle.light
-          .copyWith(systemNavigationBarColor: Colors.grey[300], systemNavigationBarIconBrightness: Brightness.dark),
+      value: AppOverlay.mySystemTheme,
       child: MultiBlocProvider(
         providers: [
-
+          // Mqtt
+          BlocProvider(create: (_) => di.locator<MqttBloc>()),
         ],
         child: SafeArea(
           child: MaterialApp(
@@ -34,10 +38,10 @@ class MyApp extends StatelessWidget {
                 child: child!,
               );
             },
-            navigatorObservers: [],
-            home: const SplashScreen(),
+            navigatorObservers: [routeObserver],
+            home: const MqttScreen(),
             onGenerateRoute: (settings) => generateRoute(settings),
-          )
+          ),
         ),
       ),
     );
