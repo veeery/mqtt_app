@@ -54,7 +54,6 @@ class MqttRemoteDataSourceImpl implements MqttRemoteDataSource {
 
   @override
   Future<MqttServerClient> disconnect({required MqttModel mqttModel}) async {
-
     String id = await getDeviceId();
 
     try {

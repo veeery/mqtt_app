@@ -179,7 +179,8 @@ class MqttBloc extends Bloc<MqttEvent, MqttState> {
         });
       } else {
         emit(MqttConnecting(isLoading: false));
-        emit(MqttError(message: "You don't have any mqtt data yet. Please connect to mqtt server first."));
+        emit(MqttEmpty());
+        // emit(MqttError(message: "You don't have any mqtt data yet. Please connect to mqtt server first."));
       }
     });
   }

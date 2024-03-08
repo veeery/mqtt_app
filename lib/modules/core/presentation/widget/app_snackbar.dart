@@ -8,7 +8,7 @@ class AppSnackBar {
         padding: EdgeInsets.symmetric(horizontal: 1.w, vertical: 1.h),
         // content: Text(message, style: kBodyTextBold),
         content: Text(message),
-        duration: const Duration(seconds: 3),
+        duration: const Duration(seconds: 1),
         closeIconColor: Colors.white,
         showCloseIcon: true,
         shape: RoundedRectangleBorder(

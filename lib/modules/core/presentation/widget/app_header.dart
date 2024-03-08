@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:mqtt_broker_app/modules/core/common/app_responsive.dart';
 
 class AppHeader extends StatelessWidget {
-  final String title;
+  // final String title;
+  final Widget child;
   final Function()? onBack;
   final Widget? sideMenu;
   final bool? backButtonEnabled;
 
   const AppHeader({
     super.key,
-    required this.title,
+    required this.child,
     this.onBack,
     this.sideMenu,
     this.backButtonEnabled = true,
@@ -20,7 +21,7 @@ class AppHeader extends StatelessWidget {
     return Container(
       color: Colors.white,
       width: 100.w,
-      height: 6.5.h,
+      // height: 6.5.h,
       child: Row(
         children: [
           const Spacer(flex: 1),
@@ -35,7 +36,7 @@ class AppHeader extends StatelessWidget {
             ),
           ),
           const Spacer(flex: 1),
-          Text(title),
+          child,
           const Spacer(flex: 25),
           sideMenu ?? Container(),
           Spacer(flex: sideMenu == null ? 1 : 2),

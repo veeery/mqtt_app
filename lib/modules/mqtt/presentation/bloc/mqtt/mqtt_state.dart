@@ -7,6 +7,8 @@ abstract class MqttState extends Equatable {
 
 class MqttInitial extends MqttState {}
 
+class MqttEmpty extends MqttState {}
+
 // Connect
 class MqttConnected extends MqttState {
   final String message;
