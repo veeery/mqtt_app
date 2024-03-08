@@ -9,11 +9,12 @@ class MqttInitial extends MqttState {}
 
 class MqttConnected extends MqttState {
   final String message;
+  final MqttModel mqttModel;
 
-  MqttConnected({required this.message});
+  MqttConnected({required this.message, required this.mqttModel});
 
   @override
-  List<Object> get props => [message];
+  List<Object> get props => [message, mqttModel];
 }
 
 class MqttConnecting extends MqttState {

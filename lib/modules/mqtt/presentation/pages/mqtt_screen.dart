@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mqtt_broker_app/modules/core/presentation/widget/app_button.dart';
 import 'package:mqtt_broker_app/modules/core/presentation/widget/app_textfield.dart';
 
-import '../../data/model/mqtt_model.dart';
 import '../bloc/mqtt/mqtt_bloc.dart';
 import 'mqtt_configuration.dart';
 
@@ -23,16 +22,17 @@ class _MqttScreenState extends State<MqttScreen> {
     Future.microtask(
       () async {
         // todo buat auto reconnect dari database
-        context.read<MqttBloc>().add(
-              const ConnectMqtt(
-                mqttModel: MqttModel(
-                  host: "",
-                  username: "username",
-                  password: "password",
-                  port: "",
-                ),
-              ),
-            );
+        // context.read<MqttBloc>().add(
+        //       const ConnectMqtt(
+        //         mqttModel: MqttModel(
+        //           host: "",
+        //           username: "username",
+        //           password: "password",
+        //           port: 0,
+        //         ),
+        //       ),
+        //     );
+        context.read<MqttBloc>().add(const GetMqttCacheEvent(username: "username"));
       },
     );
   }
@@ -55,7 +55,14 @@ class _MqttScreenState extends State<MqttScreen> {
                 }
 
                 if (state is MqttConnected) {
-                  return Text('Connected to the broker');
+                  return Column(
+                    children: [
+                      Text('${state.message}'),
+                      Text('Your Last data cached'),
+                      Text('Host: ${state.mqttModel.host}'),
+                      Text('Port: ${state.mqttModel.port}'),
+                    ],
+                  );
                 }
 
                 if (state is MqttError) {

@@ -29,10 +29,22 @@ class _MqttConfigurationScreenState extends State<MqttConfigurationScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              AppTextField(controller: hostController, labelText: "Host", hintText: "Enter Host"),
-              const SizedBox(height: 20),
-              AppTextField(controller: portController, labelText: "Port", hintText: "Enter Port"),
-              const SizedBox(height: 20),
+              BlocBuilder<MqttBloc, MqttState>(
+                builder: (context, state) {
+                  if (state is MqttConnected) {
+                    hostController.text = state.mqttModel.host;
+                    portController.text = state.mqttModel.port.toString();
+                  }
+                  return Column(
+                    children: [
+                      AppTextField(controller: hostController, labelText: "Host", hintText: "Enter Host"),
+                      const SizedBox(height: 20),
+                      AppTextField(controller: portController, labelText: "Port", hintText: "Enter Port"),
+                      const SizedBox(height: 20),
+                    ],
+                  );
+                },
+              ),
               AppButton(
                 onPressed: () {
                   context.read<MqttBloc>().add(
@@ -42,7 +54,7 @@ class _MqttConfigurationScreenState extends State<MqttConfigurationScreen> {
                             host: hostController.text,
                             username: "username",
                             password: "password",
-                            port: portController.text,
+                            port: int.parse(portController.text),
                             // port: "1883",
                           ),
                         ),
@@ -52,7 +64,19 @@ class _MqttConfigurationScreenState extends State<MqttConfigurationScreen> {
               ),
               BlocBuilder<MqttBloc, MqttState>(
                 builder: (context, state) {
-                  return Text("$state");
+                  if (state is MqttConnecting) {
+                    return const CircularProgressIndicator();
+                  }
+
+                  if (state is MqttConnected) {
+                    return const Text('Connected to the broker');
+                  }
+
+                  if (state is MqttError) {
+                    return const Text('Failed to Connect to the broker');
+                  }
+
+                  return Text('Not Connected to the broker');
                 },
               )
             ],

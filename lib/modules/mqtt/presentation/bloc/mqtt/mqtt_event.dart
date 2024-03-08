@@ -14,3 +14,14 @@ class ConnectMqtt extends MqttEvent {
   @override
   List<Object> get props => [mqttModel];
 }
+
+class GetMqttCacheEvent extends MqttEvent {
+  final String username;
+
+  const GetMqttCacheEvent({
+    required this.username,
+  });
+
+  @override
+  List<Object> get props => [username];
+}

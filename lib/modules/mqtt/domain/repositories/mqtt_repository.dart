@@ -7,4 +7,7 @@ import '../../../core/common/failure.dart';
 abstract class MqttRepository {
   // Remote
   Future<Either<Failure, MqttServerClient>> connectMqttRepository({required MqttModel mqttModel});
+  // Local
+  Future<Either<Failure, MqttModel>> getMqttDataByUsername({required String username});
+  Future<Either<Failure, bool>> insertMqttData({required MqttModel mqttDataModel});
 }

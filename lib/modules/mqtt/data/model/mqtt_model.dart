@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 class MqttModel extends Equatable {
   final String host;
-  final String port;
+  final int port;
   final String username;
   final String password;
 
@@ -23,5 +23,14 @@ class MqttModel extends Equatable {
       username: json['username'],
       password: json['password'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'host': host,
+      'port': port,
+      'username': username,
+      'password': password,
+    };
   }
 }
