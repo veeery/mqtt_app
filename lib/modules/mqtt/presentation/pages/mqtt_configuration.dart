@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mqtt_broker_app/modules/core/common/memory_data.dart';
+import 'package:mqtt_broker_app/modules/core/presentation/widget/app_snackbar.dart';
 import 'package:mqtt_broker_app/modules/mqtt/data/model/mqtt_model.dart';
 import 'package:mqtt_broker_app/modules/mqtt/presentation/bloc/mqtt/mqtt_bloc.dart';
+import 'package:mqtt_client/mqtt_client.dart';
 
 import '../../../core/presentation/widget/app_button.dart';
 import '../../../core/presentation/widget/app_textfield.dart';
@@ -17,14 +20,28 @@ class MqttConfigurationScreen extends StatefulWidget {
 class _MqttConfigurationScreenState extends State<MqttConfigurationScreen> {
   @override
   Widget build(BuildContext context) {
-    final TextEditingController hostController = TextEditingController();
-    final TextEditingController portController = TextEditingController();
+    final TextEditingController hostController = TextEditingController(text: MemoryData.mqttModel?.host ?? "");
+    final TextEditingController portController =
+        TextEditingController(text: MemoryData.mqttModel?.port.toString() ?? "");
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('MQTT Configuration'),
+      ),
       body: BlocListener<MqttBloc, MqttState>(
         listener: (context, state) {
           if (state is MqttConnected) {
+            AppSnackBar().show(context: context, message: state.message);
             Navigator.of(context).pop();
+          }
+
+          if (state is MqttDisconnected) {
+            AppSnackBar().show(context: context, message: state.message);
+            Navigator.of(context).pop();
+          }
+
+          if (state is MqttError) {
+            AppSnackBar().show(context: context, message: state.message);
           }
         },
         child: Padding(
@@ -35,42 +52,41 @@ class _MqttConfigurationScreenState extends State<MqttConfigurationScreen> {
             children: [
               AppTextField(controller: hostController, labelText: "Host", hintText: "Enter Host"),
               const SizedBox(height: 20),
-              AppTextField(controller: portController, labelText: "Port", hintText: "Enter Port"), // todo: change to number input only
+              AppTextField(
+                  controller: portController,
+                  labelText: "Port",
+                  hintText: "Enter Port",
+                  keyboardType: TextInputType.number),
               const SizedBox(height: 20),
-              AppButton(
-                onPressed: () {
-                  context.read<MqttBloc>().add(
-                        ConnectMqtt(
-                          mqttModel: MqttModel(
-                            // host: "broker.emqx.io",
-                            host: hostController.text,
-                            username: "username",
-                            password: "password",
-                            port: int.parse(portController.text),
-                            // port: "1883",
-                          ),
-                        ),
-                      );
-                },
-                text: 'Connect',
-              ),
               BlocBuilder<MqttBloc, MqttState>(
                 builder: (context, state) {
-                  if (state is MqttConnecting) {
-                    return const CircularProgressIndicator();
-                  }
-
                   if (state is MqttConnected) {
-                    return const Text('Connected to the broker');
+                    MemoryData.mqttStatus = MqttConnectionState.connected;
                   }
 
-                  if (state is MqttError) {
-                    return const Text('Failed to Connect to the broker');
+                  if (state is MqttDisconnected) {
+                    MemoryData.mqttStatus = MqttConnectionState.disconnected;
                   }
 
-                  return Text('Not Connected to the broker');
+                  return AppButton(
+                    text: MemoryData.mqttStatus == MqttConnectionState.disconnected ? "Connect" : "Disconnect",
+                    color: MemoryData.mqttStatus == MqttConnectionState.disconnected ? Colors.green : Colors.red,
+                    isLoading: MemoryData.mqttStatus == MqttConnectionState.disconnected ? state is MqttConnected : state is MqttDisconnected,
+                    onPressed: () {
+                      MqttModel model = MqttModel(
+                        host: hostController.text,
+                        username: "username",
+                        password: "password",
+                        port: int.parse(portController.text),
+                      );
+
+                      MemoryData.mqttStatus == MqttConnectionState.connected
+                          ? context.read<MqttBloc>().add(DisconnectMqtt(mqttModel: model))
+                          : context.read<MqttBloc>().add(ConnectMqtt(mqttModel: model));
+                    },
+                  );
                 },
-              )
+              ),
             ],
           ),
         ),

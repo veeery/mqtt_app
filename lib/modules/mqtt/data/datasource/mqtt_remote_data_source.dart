@@ -8,6 +8,8 @@ import '../../../core/common/exception.dart';
 
 abstract class MqttRemoteDataSource {
   Future<MqttServerClient> connect({required MqttModel mqttModel});
+
+  Future<MqttServerClient> disconnect({required MqttModel mqttModel});
 }
 
 class MqttRemoteDataSourceImpl implements MqttRemoteDataSource {
@@ -26,12 +28,36 @@ class MqttRemoteDataSourceImpl implements MqttRemoteDataSource {
         // 1883
         mqttModel.port,
       );
-
       await client?.connect();
       return client!;
     } catch (e) {
       print('Exception: $e');
       client?.disconnect();
+
+      if (e is SocketException) {
+        throw SocketException("Failed to connect: $e");
+      } else if (e is TimeoutException) {
+        throw TimeoutException('Timeout: $e');
+      } else {
+        throw ServerException();
+      }
+    }
+  }
+
+  @override
+  Future<MqttServerClient> disconnect({required MqttModel mqttModel}) async {
+    try {
+      client = MqttServerClient.withPort(
+        mqttModel.host,
+        "flutter_client",
+        mqttModel.port,
+      );
+      client?.disconnect();
+      print('Disconnected from MQTT broker.');
+      return client!;
+    } catch (e) {
+      print('Exception: $e');
+      // client?.disconnect();
 
       if (e is SocketException) {
         throw SocketException("Failed to connect: $e");

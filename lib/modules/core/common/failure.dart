@@ -18,7 +18,7 @@ class ConnectionFailure extends Failure {
 }
 
 class SocketFailure extends Failure {
-  SocketFailure({String message = 'Please check your connection internet'}) : super(message);
+  SocketFailure({String message = 'Socket Failure, please check your hostname and port'}) : super(message);
 }
 
 class TimeOutFailure extends Failure {

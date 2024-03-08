@@ -5,6 +5,8 @@ import '../model/mqtt_model.dart';
 abstract class MqttLocalDataSource {
   Future<bool> insertMqttData({required MqttModel mqttDataModel});
 
+  Future<bool> deleteMqttDataByUsername({required String username});
+
   Future<MqttModel> getMqttDataByUsername({required String username});
 }
 
@@ -28,6 +30,16 @@ class MqttLocalDataSourceImpl implements MqttLocalDataSource {
     try {
       final result = await databaseHelper.getDataByUsername(username: username);
       return MqttModel.fromJson(result);
+    } catch (e) {
+      throw DatabaseException(e.toString());
+    }
+  }
+
+  @override
+  Future<bool> deleteMqttDataByUsername({required String username}) async {
+    try {
+      await databaseHelper.deleteDataByUsername(username: username);
+      return true;
     } catch (e) {
       throw DatabaseException(e.toString());
     }

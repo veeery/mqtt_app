@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'app_routes.dart';
 import 'injection.dart' as di;
 import 'modules/core/common/app_overlay.dart';
+import 'modules/core/common/app_responsive.dart';
 import 'modules/core/common/utils.dart';
 import 'modules/mqtt/presentation/bloc/mqtt/mqtt_bloc.dart';
 import 'modules/mqtt/presentation/pages/mqtt_screen.dart';
@@ -33,6 +34,7 @@ class MyApp extends StatelessWidget {
               primarySwatch: Colors.blue,
             ),
             builder: (context, child) {
+              AppResponsive.init(context: context);
               return MediaQuery(
                 data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
                 child: child!,

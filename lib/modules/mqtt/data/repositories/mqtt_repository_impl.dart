@@ -29,7 +29,7 @@ class MqttRepositoryImpl implements MqttRepository {
       return Right(client);
     } on ServerException {
       return Left(ServerFailure());
-    } on SocketException {
+    } on SocketException catch (e) {
       return Left(SocketFailure());
     } on ConnectionException catch (e) {
       return Left(ConnectionFailure(message: e.message));
@@ -38,7 +38,23 @@ class MqttRepositoryImpl implements MqttRepository {
     }
   }
 
-// ------ Local -----
+  @override
+  Future<Either<Failure, MqttServerClient>> disconnectMqttRepository({required MqttModel mqttModel}) async {
+    try {
+      final client = await remoteDataSource.disconnect(mqttModel: mqttModel).timeout(defaultTimeoutDuration);
+      return Right(client);
+    } on ServerException {
+      return Left(ServerFailure());
+    } on SocketException catch (e) {
+      return Left(SocketFailure());
+    } on ConnectionException catch (e) {
+      return Left(ConnectionFailure(message: e.message));
+    } on TimeoutException {
+      return Left(TimeOutFailure());
+    }
+  }
+
+  // ------ Local -----
   @override
   Future<Either<Failure, MqttModel>> getMqttDataByUsername({required String username}) async {
     try {
@@ -55,6 +71,18 @@ class MqttRepositoryImpl implements MqttRepository {
   Future<Either<Failure, bool>> insertMqttData({required MqttModel mqttDataModel}) async {
     try {
       final result = await localDataSource.insertMqttData(mqttDataModel: mqttDataModel);
+      return Right(result);
+    } on DatabaseException catch (e) {
+      return Left(DatabaseFailure(message: e.message));
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> deleteMqttDataByUsername({required String username}) async {
+    try {
+      final result = await localDataSource.deleteMqttDataByUsername(username: username);
       return Right(result);
     } on DatabaseException catch (e) {
       return Left(DatabaseFailure(message: e.message));

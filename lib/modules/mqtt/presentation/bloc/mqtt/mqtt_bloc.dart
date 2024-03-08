@@ -1,29 +1,35 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:mqtt_broker_app/modules/mqtt/data/model/mqtt_model.dart';
+import 'package:mqtt_broker_app/modules/mqtt/domain/usecases/disconnect.dart';
 import 'package:mqtt_broker_app/modules/mqtt/domain/usecases/offline/get_mqtt.dart';
 import 'package:mqtt_broker_app/modules/mqtt/domain/usecases/offline/insert_mqtt.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
+import '../../../../core/common/memory_data.dart';
 import '../../../domain/usecases/connect.dart';
+import '../../../domain/usecases/offline/delete_mqtt.dart';
 
 part 'mqtt_event.dart';
-
 part 'mqtt_state.dart';
 
 class MqttBloc extends Bloc<MqttEvent, MqttState> {
   // Remote / Online
   final MqttUseCaseConnect connect;
+  final MqttUseCaseDisconnect disconnect;
 
   // Offline / Cache
   final GetMqttCache getMqttCache;
   final InsertMqtt insertCache;
+  final DeleteMqtt deleteCache;
 
   MqttBloc({
     required this.connect,
+    required this.disconnect,
     required this.getMqttCache,
     required this.insertCache,
+    required this.deleteCache,
   }) : super(MqttInitial()) {
     on<ConnectMqtt>((event, emit) async {
       late MqttServerClient serverClient;
@@ -35,7 +41,6 @@ class MqttBloc extends Bloc<MqttEvent, MqttState> {
       result.fold((failure) {
         emit(MqttConnecting(isLoading: false));
         emit(MqttError(message: failure.message));
-        return;
       }, (client) {
         return serverClient = client;
       });
@@ -47,11 +52,50 @@ class MqttBloc extends Bloc<MqttEvent, MqttState> {
           emit(MqttConnecting(isLoading: false));
           emit(MqttError(message: failure.message));
         }, (data) {
+          MemoryData.mqttStatus = MqttConnectionState.connected;
+          MemoryData.mqttModel = event.mqttModel;
+
           emit(MqttConnecting(isLoading: false));
           emit(MqttConnected(message: 'Connected', mqttModel: event.mqttModel));
         });
       } else if (serverClient.connectionStatus!.state == MqttConnectionState.disconnected) {
         emit(MqttError(message: 'Disconnected'));
+      }
+    });
+
+    on<DisconnectMqtt>((event, emit) async {
+      late MqttServerClient serverClient;
+
+      emit(MqttDisconnecting(isLoading: true));
+
+      final result = await disconnect.execute(mqttModel: event.mqttModel);
+
+      result.fold((failure) {
+        emit(MqttDisconnecting(isLoading: false));
+        emit(MqttError(message: failure.message));
+        return;
+      }, (client) {
+        emit(MqttDisconnected(message: "${client.connectionStatus!.state}", mqttModel: event.mqttModel));
+        return serverClient = client;
+      });
+
+      if (serverClient.connectionStatus!.state == MqttConnectionState.disconnected) {
+        // todo : remove the cache
+
+        final cache = await deleteCache.execute(username: event.mqttModel.username);
+
+        cache.fold((failure) {
+          emit(MqttDisconnecting(isLoading: false));
+          emit(MqttError(message: failure.message));
+        }, (data) {
+          MemoryData.mqttStatus = MqttConnectionState.disconnected;
+          MemoryData.mqttModel = null;
+
+          emit(MqttDisconnecting(isLoading: false));
+          emit(MqttDisconnected(message: 'Disconnected', mqttModel: event.mqttModel));
+        });
+      } else {
+        emit(MqttError(message: 'Unknown Error'));
       }
     });
 
@@ -65,7 +109,6 @@ class MqttBloc extends Bloc<MqttEvent, MqttState> {
         emit(MqttConnecting(isLoading: false));
         emit(MqttError(message: failure.message));
       }, (data) {
-        // emit(MqttConnecting(isLoading: false));
         return mqttModel = data;
       });
 
@@ -76,6 +119,8 @@ class MqttBloc extends Bloc<MqttEvent, MqttState> {
           emit(MqttConnecting(isLoading: false));
           emit(MqttError(message: failure.message));
         }, (serverClient) {
+          MemoryData.mqttStatus = MqttConnectionState.connected;
+          MemoryData.mqttModel = mqttModel;
           emit(MqttConnecting(isLoading: false));
           emit(MqttConnected(message: 'Connected', mqttModel: mqttModel!));
         });

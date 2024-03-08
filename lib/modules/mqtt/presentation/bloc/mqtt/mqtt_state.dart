@@ -7,6 +7,8 @@ abstract class MqttState extends Equatable {
 
 class MqttInitial extends MqttState {}
 
+// Connect
+
 class MqttConnected extends MqttState {
   final String message;
   final MqttModel mqttModel;
@@ -24,6 +26,26 @@ class MqttConnecting extends MqttState {
 
   @override
   List<Object> get props => [isLoading];
+}
+
+// Disconnect
+class MqttDisconnecting extends MqttState {
+  final bool isLoading;
+
+  MqttDisconnecting({this.isLoading = false});
+
+  @override
+  List<Object> get props => [isLoading];
+}
+
+class MqttDisconnected extends MqttState {
+  final String message;
+  final MqttModel mqttModel;
+
+  MqttDisconnected({required this.message, required this.mqttModel});
+
+  @override
+  List<Object> get props => [message, mqttModel];
 }
 
 class MqttError extends MqttState {

@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:mqtt_broker_app/modules/core/common/app_responsive.dart';
 
 class AppButton extends StatelessWidget {
   final VoidCallback onPressed;
   final String text;
   final bool isLoading;
+  final Color color;
 
   const AppButton({
     Key? key,
     required this.onPressed,
     required this.text,
+    this.color = Colors.blue,
     this.isLoading = false,
   }) : super(key: key);
 
@@ -16,31 +19,34 @@ class AppButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: isLoading ? null : onPressed,
-      child: Container(
-        width: 100,
-        height: 20,
-        decoration: BoxDecoration(
-          color: Colors.blue,
-          borderRadius: BorderRadius.circular(20),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: 90.w,
+          minHeight: 8.h,
         ),
-        child: Center(
-          child: isLoading
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 10,
-                      height: 10,
-                      child: const CircularProgressIndicator(color: Colors.white),
-                    ),
-                    SizedBox(width: 20),
-                    // Text('Memuat ....', style: kBodyText.copyWith(color: Colors.white)),
-                    Text('Memuatttt'),
-                  ],
-                )
-              // : Text(text, style: kBodyTextBold.copyWith(color: Colors.white)),
-              : Text(text, style: TextStyle(color: Colors.white)),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+              color: color,
+            borderRadius: BorderRadius.circular(2.w),
+          ),
+          child: Center(
+            child: isLoading
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 4.w,
+                        height: 4.w,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 0.6.w),
+                      ),
+                      SizedBox(width: 5.w),
+                      Text('Loading', style: TextStyle(color: Colors.white, fontSize: 14.sp)),
+                    ],
+                  )
+                // : Text(text, style: kBodyTextBold.copyWith(color: Colors.white)),
+                : Text(text, style: TextStyle(color: Colors.white, fontSize: 14.sp)),
+          ),
         ),
       ),
     );

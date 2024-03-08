@@ -75,4 +75,25 @@ class DatabaseHelper {
       throw Exception('Username $username not found');
     }
   }
+
+  Future<bool> deleteDataByUsername({required String username}) async {
+    final db = await database;
+
+    if (db == null) {
+      return false;
+    }
+
+    try {
+      await db.delete(
+        mqttConfigurationTable,
+        where: 'username = ?',
+        whereArgs: [username],
+      );
+      return true;
+    } catch (e) {
+      print('Failed to delete: $e');
+      return false;
+    }
+  }
+
 }

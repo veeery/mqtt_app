@@ -15,6 +15,17 @@ class ConnectMqtt extends MqttEvent {
   List<Object> get props => [mqttModel];
 }
 
+class DisconnectMqtt extends MqttEvent {
+  final MqttModel mqttModel;
+
+  const DisconnectMqtt({
+    required this.mqttModel,
+  });
+
+  @override
+  List<Object> get props => [mqttModel];
+}
+
 class GetMqttCacheEvent extends MqttEvent {
   final String username;
 
