@@ -4,12 +4,15 @@ import 'package:mqtt_broker_app/modules/mqtt/data/model/mqtt_model.dart';
 import 'package:mqtt_broker_app/modules/mqtt/domain/usecases/disconnect.dart';
 import 'package:mqtt_broker_app/modules/mqtt/domain/usecases/offline/get_mqtt.dart';
 import 'package:mqtt_broker_app/modules/mqtt/domain/usecases/offline/insert_mqtt.dart';
+import 'package:mqtt_broker_app/modules/mqtt/domain/usecases/subscribe.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
 import '../../../../core/common/memory_data.dart';
 import '../../../domain/usecases/connect.dart';
 import '../../../domain/usecases/offline/delete_mqtt.dart';
+import '../../../domain/usecases/send_message.dart';
+import '../../../domain/usecases/unsubscribe.dart';
 
 part 'mqtt_event.dart';
 part 'mqtt_state.dart';
@@ -18,6 +21,9 @@ class MqttBloc extends Bloc<MqttEvent, MqttState> {
   // Remote / Online
   final MqttUseCaseConnect connect;
   final MqttUseCaseDisconnect disconnect;
+  final MqttUseCaseSubscribe subscribe;
+  final MqttUseCaseUnsubscribe unsubscribe;
+  final MqttUseCaseSendMessage sendMessage;
 
   // Offline / Cache
   final GetMqttCache getMqttCache;
@@ -27,6 +33,9 @@ class MqttBloc extends Bloc<MqttEvent, MqttState> {
   MqttBloc({
     required this.connect,
     required this.disconnect,
+    required this.subscribe,
+    required this.unsubscribe,
+    required this.sendMessage,
     required this.getMqttCache,
     required this.insertCache,
     required this.deleteCache,
@@ -54,6 +63,7 @@ class MqttBloc extends Bloc<MqttEvent, MqttState> {
         }, (data) {
           MemoryData.mqttStatus = MqttConnectionState.connected;
           MemoryData.mqttModel = event.mqttModel;
+          MemoryData.client = serverClient;
 
           emit(MqttConnecting(isLoading: false));
           emit(MqttConnected(message: 'Connected', mqttModel: event.mqttModel));
@@ -99,6 +109,48 @@ class MqttBloc extends Bloc<MqttEvent, MqttState> {
       }
     });
 
+    on<SubscribeMqtt>((event, emit) async {
+      emit(MqttSubscribing(isLoading: true));
+
+      final result = await subscribe.execute(topic: event.topic);
+
+      result.fold((failure) {
+        emit(MqttSubscribing(isLoading: false));
+        emit(MqttError(message: failure.message));
+      }, (data) {
+        emit(MqttSubscribing(isLoading: false));
+        emit(MqttSubscribed(topic: event.topic));
+      });
+    });
+
+    on<UnsubscribeMqtt>((event, emit) async {
+      emit(MqttUnsubscribing(isLoading: true));
+
+      final result = await unsubscribe.execute(topic: event.topic);
+
+      result.fold((failure) {
+        emit(MqttUnsubscribing(isLoading: false));
+        emit(MqttError(message: failure.message));
+      }, (data) {
+        emit(MqttUnsubscribing(isLoading: false));
+        emit(MqttUnsubscribed(topic: event.topic));
+      });
+    });
+
+    on<SendMessageMqtt>((event, emit) async {
+      emit(MqttMessageSending(isLoading: true));
+
+      final result = await sendMessage.execute(topic: event.topic, message: event.message);
+
+      result.fold((failure) {
+        emit(MqttMessageSending(isLoading: false));
+        emit(MqttError(message: failure.message));
+      }, (data) {
+        emit(MqttMessageSending(isLoading: false));
+        emit(MqttMessageSent(topic: event.topic, message: event.message));
+      });
+    });
+
     on<GetMqttCacheEvent>((event, emit) async {
       MqttModel? mqttModel;
       emit(MqttConnecting(isLoading: true));
@@ -121,6 +173,7 @@ class MqttBloc extends Bloc<MqttEvent, MqttState> {
         }, (serverClient) {
           MemoryData.mqttStatus = MqttConnectionState.connected;
           MemoryData.mqttModel = mqttModel;
+          MemoryData.client = serverClient;
           emit(MqttConnecting(isLoading: false));
           emit(MqttConnected(message: 'Connected', mqttModel: mqttModel!));
         });

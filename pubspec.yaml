@@ -19,8 +19,8 @@ dependencies:
   equatable:
   dartz:
 
-  # HTTP
-  http:
+  # DeviceInfo
+  device_info:
 
   # Local Database & Handler
   get_it:

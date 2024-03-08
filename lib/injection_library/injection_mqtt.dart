@@ -7,6 +7,9 @@ import 'package:mqtt_broker_app/modules/mqtt/domain/usecases/disconnect.dart';
 import 'package:mqtt_broker_app/modules/mqtt/domain/usecases/offline/delete_mqtt.dart';
 import 'package:mqtt_broker_app/modules/mqtt/domain/usecases/offline/get_mqtt.dart';
 import 'package:mqtt_broker_app/modules/mqtt/domain/usecases/offline/insert_mqtt.dart';
+import 'package:mqtt_broker_app/modules/mqtt/domain/usecases/send_message.dart';
+import 'package:mqtt_broker_app/modules/mqtt/domain/usecases/subscribe.dart';
+import 'package:mqtt_broker_app/modules/mqtt/domain/usecases/unsubscribe.dart';
 
 import '../modules/mqtt/data/datasource/mqtt_local_data_source.dart';
 import '../modules/mqtt/presentation/bloc/mqtt/mqtt_bloc.dart';
@@ -21,6 +24,9 @@ void injectionMqtt() {
     () => MqttBloc(
       connect: locator(),
       disconnect: locator(),
+      subscribe: locator(),
+      unsubscribe: locator(),
+      sendMessage: locator(),
       getMqttCache: locator(),
       insertCache: locator(),
       deleteCache: locator(),
@@ -30,6 +36,9 @@ void injectionMqtt() {
   // UseCase
   locator.registerLazySingleton(() => MqttUseCaseConnect(locator()));
   locator.registerLazySingleton(() => MqttUseCaseDisconnect(locator()));
+  locator.registerLazySingleton(() => MqttUseCaseSubscribe(locator()));
+  locator.registerLazySingleton(() => MqttUseCaseUnsubscribe(locator()));
+  locator.registerLazySingleton(() => MqttUseCaseSendMessage(locator()));
 
   locator.registerLazySingleton(() => GetMqttCache(locator()));
   locator.registerLazySingleton(() => InsertMqtt(locator()));

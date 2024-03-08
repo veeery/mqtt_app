@@ -8,7 +8,6 @@ abstract class MqttState extends Equatable {
 class MqttInitial extends MqttState {}
 
 // Connect
-
 class MqttConnected extends MqttState {
   final String message;
   final MqttModel mqttModel;
@@ -46,6 +45,74 @@ class MqttDisconnected extends MqttState {
 
   @override
   List<Object> get props => [message, mqttModel];
+}
+
+// Subscribe
+class MqttSubscribing extends MqttState {
+  final bool isLoading;
+
+  MqttSubscribing({this.isLoading = false});
+
+  @override
+  List<Object> get props => [isLoading];
+}
+
+class MqttSubscribed extends MqttState {
+  final String topic;
+
+  MqttSubscribed({required this.topic});
+
+  @override
+  List<Object> get props => [topic];
+}
+
+// Unsubscribe
+class MqttUnsubscribing extends MqttState {
+  final bool isLoading;
+
+  MqttUnsubscribing({this.isLoading = false});
+
+  @override
+  List<Object> get props => [isLoading];
+}
+
+class MqttUnsubscribed extends MqttState {
+  final String topic;
+
+  MqttUnsubscribed({required this.topic});
+
+  @override
+  List<Object> get props => [topic];
+}
+
+// Publish / Message
+
+class MqttMessageSending extends MqttState {
+  final bool isLoading;
+
+  MqttMessageSending({required this.isLoading});
+
+  @override
+  List<Object> get props => [isLoading];
+}
+
+class MqttMessageSent extends MqttState {
+  final String topic;
+  final String message;
+
+  MqttMessageSent({required this.topic, required this.message});
+
+  @override
+  List<Object> get props => [topic, message];
+}
+
+class MqttMessageReceived extends MqttState {
+  final String message;
+
+  MqttMessageReceived({required this.message});
+
+  @override
+  List<Object> get props => [message];
 }
 
 class MqttError extends MqttState {

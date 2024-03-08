@@ -54,6 +54,54 @@ class MqttRepositoryImpl implements MqttRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, bool>> subscribeMqttRepository({required String topic}) async {
+    try {
+      final client = await remoteDataSource.subscribe(topic: topic).timeout(defaultTimeoutDuration);
+      return Right(client);
+    } on ServerException {
+      return Left(ServerFailure());
+    } on SocketException catch (e) {
+      return Left(SocketFailure());
+    } on ConnectionException catch (e) {
+      return Left(ConnectionFailure(message: e.message));
+    } on TimeoutException {
+      return Left(TimeOutFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> unsubscribeMqttRepository({required String topic}) async {
+    try {
+      final client = await remoteDataSource.unsubscribe(topic: topic).timeout(defaultTimeoutDuration);
+      return Right(client);
+    } on ServerException {
+      return Left(ServerFailure());
+    } on SocketException catch (e) {
+      return Left(SocketFailure());
+    } on ConnectionException catch (e) {
+      return Left(ConnectionFailure(message: e.message));
+    } on TimeoutException {
+      return Left(TimeOutFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> sendMessageMqttRepository({required String topic, required String message}) async {
+    try {
+      final client = await remoteDataSource.message(topic: topic, message: message);
+      return Right(client);
+    } on ServerException {
+      return Left(ServerFailure());
+    } on SocketException catch (e) {
+      return Left(SocketFailure());
+    } on ConnectionException catch (e) {
+      return Left(ConnectionFailure(message: e.message));
+    } on TimeoutException {
+      return Left(TimeOutFailure());
+    }
+  }
+
   // ------ Local -----
   @override
   Future<Either<Failure, MqttModel>> getMqttDataByUsername({required String username}) async {
@@ -90,4 +138,7 @@ class MqttRepositoryImpl implements MqttRepository {
       rethrow;
     }
   }
+
+
+
 }

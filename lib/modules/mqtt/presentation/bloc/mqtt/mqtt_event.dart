@@ -26,6 +26,48 @@ class DisconnectMqtt extends MqttEvent {
   List<Object> get props => [mqttModel];
 }
 
+class SubscribeMqtt extends MqttEvent {
+  final String topic;
+
+  const SubscribeMqtt({
+    required this.topic,
+  });
+
+  @override
+  List<Object> get props => [topic];
+}
+
+class UnsubscribeMqtt extends MqttEvent {
+  final String topic;
+
+  const UnsubscribeMqtt({
+    required this.topic,
+  });
+
+  @override
+  List<Object> get props => [topic];
+}
+
+class SendMessageMqtt extends MqttEvent {
+  final String message;
+  final String topic;
+
+  const SendMessageMqtt({
+    required this.message,
+    required this.topic,
+  });
+
+  @override
+  List<Object> get props => [message, topic];
+}
+
+class LoadMessages extends MqttEvent {
+  const LoadMessages();
+
+  @override
+  List<Object> get props => [];
+}
+
 class GetMqttCacheEvent extends MqttEvent {
   final String username;
 
