@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mqtt_broker_app/modules/core/presentation/widget/app_button.dart';
+import 'package:mqtt_broker_app/modules/core/presentation/widget/app_loading.dart';
 import 'package:mqtt_broker_app/modules/core/presentation/widget/app_textfield.dart';
 
 import '../bloc/mqtt/mqtt_bloc.dart';
@@ -51,7 +52,7 @@ class _MqttScreenState extends State<MqttScreen> {
             BlocBuilder<MqttBloc, MqttState>(
               builder: (context, state) {
                 if (state is MqttConnecting) {
-                  return CircularProgressIndicator();
+                  return AppLoading();
                 }
 
                 if (state is MqttConnected) {

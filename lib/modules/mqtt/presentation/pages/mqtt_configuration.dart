@@ -22,29 +22,21 @@ class _MqttConfigurationScreenState extends State<MqttConfigurationScreen> {
 
     return Scaffold(
       body: BlocListener<MqttBloc, MqttState>(
-        listener: (context, state) {},
+        listener: (context, state) {
+          if (state is MqttConnected) {
+            Navigator.of(context).pop();
+          }
+        },
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              BlocBuilder<MqttBloc, MqttState>(
-                builder: (context, state) {
-                  if (state is MqttConnected) {
-                    hostController.text = state.mqttModel.host;
-                    portController.text = state.mqttModel.port.toString();
-                  }
-                  return Column(
-                    children: [
-                      AppTextField(controller: hostController, labelText: "Host", hintText: "Enter Host"),
-                      const SizedBox(height: 20),
-                      AppTextField(controller: portController, labelText: "Port", hintText: "Enter Port"),
-                      const SizedBox(height: 20),
-                    ],
-                  );
-                },
-              ),
+              AppTextField(controller: hostController, labelText: "Host", hintText: "Enter Host"),
+              const SizedBox(height: 20),
+              AppTextField(controller: portController, labelText: "Port", hintText: "Enter Port"), // todo: change to number input only
+              const SizedBox(height: 20),
               AppButton(
                 onPressed: () {
                   context.read<MqttBloc>().add(
