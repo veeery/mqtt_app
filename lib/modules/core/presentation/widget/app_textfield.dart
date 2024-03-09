@@ -34,7 +34,7 @@ class AppTextField extends StatelessWidget {
           hintText: "$hintText",
           labelStyle: TextStyle(
             fontSize: 15.sp,
-            color: Colors.black,
+            // color: Colors.black,
           ),
           hintStyle: TextStyle(
             fontSize: 15.sp,

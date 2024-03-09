@@ -17,7 +17,6 @@ import 'package:mqtt_client/mqtt_server_client.dart';
 import '../../../core/presentation/widget/app_footer.dart';
 import '../../../core/presentation/widget/app_header.dart';
 import '../bloc/mqtt/mqtt_bloc.dart';
-import 'mqtt_configuration.dart';
 
 class MqttScreen extends StatefulWidget {
   const MqttScreen({Key? key}) : super(key: key);
@@ -125,7 +124,7 @@ class _MqttScreenState extends State<MqttScreen> {
 
                               if (messages == []) {
                                 return const AppCustomCard(
-                                  color: Colors.white,
+                                  color: Colors.transparent,
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.center,
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -137,7 +136,7 @@ class _MqttScreenState extends State<MqttScreen> {
                               }
 
                               return AppCustomCard(
-                                color: Colors.white,
+                                color: Colors.transparent,
                                 child: Column(
                                   children: [
                                     Text('Received message: $messageText'),
@@ -151,7 +150,7 @@ class _MqttScreenState extends State<MqttScreen> {
                           return Text('Error: ${snapshot.error}');
                         } else {
                           return const AppCustomCard(
-                            color: Colors.white,
+                            color: Colors.transparent,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               mainAxisAlignment: MainAxisAlignment.center,

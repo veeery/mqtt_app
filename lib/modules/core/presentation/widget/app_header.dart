@@ -19,7 +19,7 @@ class AppHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: Colors.transparent,
       width: 100.w,
       // height: 6.5.h,
       child: Row(

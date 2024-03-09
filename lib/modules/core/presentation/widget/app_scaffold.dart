@@ -30,7 +30,7 @@ class AppScaffold extends StatelessWidget {
         body: Container(
           width: 100.w,
           height: 100.h,
-          color: backgroundColor ?? Colors.white,
+          color: backgroundColor ?? Colors.transparent,
           child: GestureDetector(
             onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
             child: Stack(

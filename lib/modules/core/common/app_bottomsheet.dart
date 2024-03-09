@@ -43,7 +43,7 @@ class _AppFooterState extends State<AppBottomSheet> with SingleTickerProviderSta
       },
       child: AnimatedContainer(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[900] : Colors.white,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(2.w),
             topRight: Radius.circular(2.w),
