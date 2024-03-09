@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mqtt_broker_app/modules/core/common/app_bottomsheet.dart';
 import 'package:mqtt_broker_app/modules/core/common/app_responsive.dart';
 import 'package:mqtt_broker_app/modules/core/common/memory_data.dart';
 import 'package:mqtt_broker_app/modules/core/common/state_enum.dart';
 import 'package:mqtt_broker_app/modules/core/presentation/widget/app_body.dart';
 import 'package:mqtt_broker_app/modules/core/presentation/widget/app_custom_card.dart';
-import 'package:mqtt_broker_app/modules/core/presentation/widget/app_loading.dart';
 import 'package:mqtt_broker_app/modules/core/presentation/widget/app_message_input.dart';
 import 'package:mqtt_broker_app/modules/core/presentation/widget/app_scaffold.dart';
 import 'package:mqtt_broker_app/modules/core/presentation/widget/app_snackbar.dart';
+import 'package:mqtt_broker_app/modules/mqtt/data/model/mqtt_model.dart';
+import 'package:mqtt_broker_app/modules/settings/presentation/pages/setting_screen.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
@@ -42,25 +44,29 @@ class _MqttScreenState extends State<MqttScreen> {
     final TextEditingController topicController = TextEditingController();
     final TextEditingController messageController = TextEditingController();
 
+    final List<MqttReceivedMessage<MqttMessage>> messages = [];
+
     return AppScaffold(
       appHeader: AppHeader(
         backButtonEnabled: false,
         sideMenu: IconButton(
           onPressed: () {
-            Navigator.pushNamed(context, MqttConfigurationScreen.routeName);
+            Navigator.pushNamed(context, SettingScreen.routeName);
           },
           icon: const Icon(Icons.settings),
         ),
         child: BlocBuilder<MqttBloc, MqttState>(
           builder: (context, state) {
-            if (state is MqttConnected) {
+            MqttModel? mqttModel = MemoryData.mqttModel;
+
+            if (mqttModel != null) {
               return Padding(
                 padding: EdgeInsets.symmetric(horizontal: 2.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("MQTT Broker App - ${state.mqttModel.host}",
+                    Text("MQTT Broker App - ${mqttModel.host}",
                         style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold)),
                     Text("Connected", style: TextStyle(fontSize: 12.sp)),
                   ],
@@ -106,27 +112,53 @@ class _MqttScreenState extends State<MqttScreen> {
                         print('snapshot: $snapshot');
 
                         if (snapshot.hasData) {
-                          return Column(
-                            children: snapshot.data!.map((e) {
-                              final MqttPublishMessage recMess = e.payload as MqttPublishMessage;
-                              final String message = MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
+                          snapshot.data!.forEach((message) {
+                            messages.add(message);
+                          });
+
+                          return ListView.builder(
+                            itemCount: messages.length,
+                            itemBuilder: (context, index) {
+                              final MqttPublishMessage recMess = messages[index].payload as MqttPublishMessage;
+                              final String messageText =
+                                  MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
+
+                              if (messages == []) {
+                                return const AppCustomCard(
+                                  color: Colors.white,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text('Your messages will appear here'),
+                                    ],
+                                  ),
+                                );
+                              }
+
                               return AppCustomCard(
                                 color: Colors.white,
                                 child: Column(
                                   children: [
-                                    Text('Received message: $message'),
-                                    Text('from topic: ${e.topic}'),
+                                    Text('Received message: $messageText'),
+                                    Text('from topic: ${messages[index].topic}'),
                                   ],
                                 ),
                               );
-                            }).toList(),
+                            },
                           );
                         } else if (snapshot.hasError) {
                           return Text('Error: ${snapshot.error}');
                         } else {
                           return const AppCustomCard(
                             color: Colors.white,
-                            child: AppLoading(),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('Your messages will appear here'),
+                              ],
+                            ),
                           );
                         }
                       },
@@ -140,73 +172,120 @@ class _MqttScreenState extends State<MqttScreen> {
           builder: (context, state) {
             return MemoryData.mqttModel == null
                 ? const SizedBox()
-                : SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        BlocBuilder<MqttBloc, MqttState>(
-                          builder: (context, state) {
-                            MqttStatusState statusState = MqttStatusState.none;
+                : AppBottomSheet(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          BlocConsumer<MqttBloc, MqttState>(
+                            listener: (context, state) {
+                              if (state is MqttSubscribed) {
+                                AppSnackBar().show(context: context, message: "Subscribed to ${state.topic}");
+                              }
 
-                            if (state is MqttSubscribed) {
-                              topicController.text = state.topic;
-                              statusState = MqttStatusState.subscribe;
-                              MemoryData.mqttStatusState = statusState;
-                            }
+                              if (state is MqttUnsubscribed) {
+                                AppSnackBar().show(context: context, message: "Unsubscribed from ${state.topic}");
+                              }
+                            },
+                            builder: (context, state) {
+                              MqttStatusState statusState = MqttStatusState.none;
+                              bool isLoading = false;
 
-                            if (state is MqttUnsubscribed) {
-                              topicController.text = state.topic;
-                              statusState = MqttStatusState.unsubscribe;
-                              MemoryData.mqttStatusState = statusState;
-                            }
+                              if (state is MqttSubscribing) {
+                                isLoading = state.isLoading;
+                              }
 
-                            return MessageInput(
-                              controller: topicController,
-                              isLoading: state is MqttSubscribing,
-                              onPressed: () {
-                                if (topicController.text.isEmpty) {
-                                  AppSnackBar().show(context: context, message: "You Topic is empty");
-                                  return;
-                                }
+                              if (state is MqttUnsubscribing) {
+                                isLoading = state.isLoading;
+                              }
 
-                                if (statusState == MqttStatusState.unsubscribe || statusState == MqttStatusState.none) {
-                                  context.read<MqttBloc>().add(SubscribeMqtt(topic: topicController.text));
-                                } else {
-                                  context.read<MqttBloc>().add(UnsubscribeMqtt(topic: topicController.text));
-                                }
-                              },
-                              labelText: 'Topic',
-                              iconData:
-                                  (statusState == MqttStatusState.none || statusState == MqttStatusState.unsubscribe)
-                                      ? Icons.topic_outlined
-                                      : Icons.unsubscribe,
-                            );
-                          },
-                        ),
-                        SizedBox(height: 2.h),
-                        BlocBuilder<MqttBloc, MqttState>(
-                          builder: (context, state) {
-                            return MessageInput(
-                              isLoading: state is MqttMessageSending,
-                              controller: messageController,
-                              onPressed: () {
-                                if (messageController.text.isEmpty) {
-                                  AppSnackBar().show(context: context, message: "You Message is empty");
-                                  return;
-                                }
+                              if (state is MqttSubscribed) {
+                                topicController.text = state.topic;
+                                statusState = MqttStatusState.subscribe;
+                                MemoryData.mqttStatusState = statusState;
+                                // AppSnackBar().show(context: context, message: "Subscribed to ${state.topic}");
+                              }
 
-                                context.read<MqttBloc>().add(
-                                      SendMessageMqtt(
-                                        message: messageController.text,
-                                        topic: topicController.text,
-                                      ),
-                                    );
-                              },
-                              labelText: 'Message',
-                              iconData: Icons.send_rounded,
-                            );
-                          },
-                        ),
-                      ],
+                              if (state is MqttUnsubscribed) {
+                                topicController.clear();
+                                statusState = MqttStatusState.unsubscribe;
+                                MemoryData.mqttStatusState = statusState;
+                                // AppSnackBar().show(context: context, message: "Unsubscribed from ${state.topic}");
+                              }
+
+                              return MessageInput(
+                                controller: topicController,
+                                isLoading: isLoading,
+                                isEnabled: (MemoryData.mqttStatusState == MqttStatusState.none ||
+                                        MemoryData.mqttStatusState == MqttStatusState.unsubscribe)
+                                    ? true
+                                    : false,
+                                onTap: () {
+                                  if (topicController.text.isEmpty) {
+                                    AppSnackBar().show(context: context, message: "You Topic is empty");
+                                    return;
+                                  }
+
+                                  if (statusState == MqttStatusState.unsubscribe ||
+                                      statusState == MqttStatusState.none) {
+                                    context.read<MqttBloc>().add(SubscribeMqtt(topic: topicController.text));
+                                  } else {
+                                    context.read<MqttBloc>().add(UnsubscribeMqtt(topic: topicController.text));
+                                  }
+                                },
+                                onPressed: () {
+                                  if (topicController.text.isEmpty) {
+                                    AppSnackBar().show(context: context, message: "You Topic is empty");
+                                    return;
+                                  }
+
+                                  if (statusState == MqttStatusState.unsubscribe ||
+                                      statusState == MqttStatusState.none) {
+                                    context.read<MqttBloc>().add(SubscribeMqtt(topic: topicController.text));
+                                  } else {
+                                    context.read<MqttBloc>().add(UnsubscribeMqtt(topic: topicController.text));
+                                  }
+                                },
+                                labelText: 'Topic',
+                                iconData:
+                                    (statusState == MqttStatusState.none || statusState == MqttStatusState.unsubscribe)
+                                        ? Icons.topic_outlined
+                                        : Icons.unsubscribe,
+                              );
+                            },
+                          ),
+                          SizedBox(height: 2.h),
+                          BlocBuilder<MqttBloc, MqttState>(
+                            builder: (context, state) {
+                              return MessageInput(
+                                isLoading: state is MqttMessageSending,
+                                controller: messageController,
+                                onPressed: () {
+                                  if ((MemoryData.mqttStatusState == MqttStatusState.none) ||
+                                      (MemoryData.mqttStatusState == MqttStatusState.unsubscribe)) {
+                                    AppSnackBar()
+                                        .show(context: context, message: "You are not subscribed to any topic");
+                                    return;
+                                  }
+
+                                  if (messageController.text.isEmpty) {
+                                    AppSnackBar().show(context: context, message: "You Message is empty");
+                                    return;
+                                  }
+
+                                  context.read<MqttBloc>().add(
+                                        SendMessageMqtt(
+                                          message: messageController.text,
+                                          topic: topicController.text,
+                                        ),
+                                      );
+                                },
+                                labelText: 'Message',
+                                iconData: Icons.send_rounded,
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   );
           },

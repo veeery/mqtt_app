@@ -85,12 +85,11 @@ class MqttBloc extends Bloc<MqttEvent, MqttState> {
         emit(MqttError(message: failure.message));
         return;
       }, (client) {
-        emit(MqttDisconnected(message: "${client.connectionStatus!.state}", mqttModel: event.mqttModel));
+        // emit(MqttDisconnected(message: "${client.connectionStatus!.state}", mqttModel: event.mqttModel));
         return serverClient = client;
       });
 
       if (serverClient.connectionStatus!.state == MqttConnectionState.disconnected) {
-        // todo : remove the cache
 
         final cache = await deleteCache.execute(username: event.mqttModel.username);
 
@@ -102,7 +101,7 @@ class MqttBloc extends Bloc<MqttEvent, MqttState> {
           MemoryData.mqttModel = null;
 
           emit(MqttDisconnecting(isLoading: false));
-          emit(MqttDisconnected(message: 'Disconnected', mqttModel: event.mqttModel));
+          emit(MqttEmpty());
         });
       } else {
         emit(MqttError(message: 'Unknown Error'));

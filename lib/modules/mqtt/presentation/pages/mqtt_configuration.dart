@@ -51,7 +51,7 @@ class _MqttConfigurationScreenState extends State<MqttConfigurationScreen> {
 
               if (state is MqttDisconnected) {
                 AppSnackBar().show(context: context, message: state.message);
-                Navigator.of(context).pop();
+                // Navigator.of(context).pop();
               }
 
               if (state is MqttError) {

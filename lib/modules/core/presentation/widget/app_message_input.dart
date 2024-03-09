@@ -7,12 +7,17 @@ class MessageInput extends StatefulWidget {
   final String labelText;
   final IconData iconData;
   final bool isLoading;
+  final bool isEnabled;
+  final VoidCallback? onTap;
 
   const MessageInput({
+    super.key,
     required this.controller,
     required this.onPressed,
     required this.labelText,
     required this.iconData,
+    this.onTap,
+    this.isEnabled = true,
     this.isLoading = false,
   });
 
@@ -32,6 +37,9 @@ class _MessageInputState extends State<MessageInput> {
         Expanded(
           child: TextField(
             controller: widget.controller,
+            enabled: widget.isEnabled,
+            onTap: widget.onTap,
+            onSubmitted: (_) => _sendMessage(),
             decoration: InputDecoration(
               labelText: widget.labelText,
               border: OutlineInputBorder(
@@ -40,15 +48,13 @@ class _MessageInputState extends State<MessageInput> {
                 ),
               ),
               suffixIcon: widget.isLoading
-                  ? Padding(
-                      padding: EdgeInsets.only(left: 5.w),
-                      child: SizedBox(
-                        width: 5.w,
-                        height: 5.w,
-                        child: CircularProgressIndicator(
-                          color: Colors.blue,
-                          strokeWidth: 0.6.w,
-                        ),
+                  ? Container(
+                      width: 1.w,
+                      height: 1.w,
+                      padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 3.w),
+                      child: CircularProgressIndicator(
+                        color: Colors.blue,
+                        strokeWidth: 1.w,
                       ),
                     )
                   : IconButton(
